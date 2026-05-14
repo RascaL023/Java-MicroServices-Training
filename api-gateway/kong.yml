@@ -1,0 +1,12 @@
+_format_version: "3.0"
+
+services: 
+  - name: auth-service
+    url: http://localhost:8082
+    # url: http://host.docker.internal:8082
+
+    routes:
+      - name: auth-route
+        paths: 
+          - /api/auths
+        strip_path: false
