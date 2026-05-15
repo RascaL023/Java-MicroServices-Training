@@ -10,11 +10,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.rascal.my_lib.exception.SecurityExceptionHandler;
 
+import id.rascal.filter.HeaderAuthFilter;
+
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired private JwtAuthFilter jwtAuthFilter;
+    @Autowired private HeaderAuthFilter headerAuthFilter;
     @Autowired private SecurityExceptionHandler securityExceptionHandler;
 
     @Bean
@@ -30,7 +32,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(securityExceptionHandler)
                 .accessDeniedHandler(securityExceptionHandler)
             ).addFilterBefore(
-                jwtAuthFilter, 
+                headerAuthFilter, 
                 UsernamePasswordAuthenticationFilter.class
             ).build();
     }

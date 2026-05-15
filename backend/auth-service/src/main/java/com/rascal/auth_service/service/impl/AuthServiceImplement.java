@@ -14,9 +14,10 @@ import com.rascal.auth_service.entity.Role;
 import com.rascal.auth_service.entity.User;
 import com.rascal.auth_service.repository.UserRepository;
 import com.rascal.auth_service.service.AuthService;
-import com.rascal.auth_service.service.JwtService;
 import com.rascal.my_lib.exception.BadRequestException;
 import com.rascal.my_lib.exception.NotFoundException;
+
+import id.rascal.filter.service.JwtService;
 
 @Service
 public class AuthServiceImplement implements AuthService {
@@ -42,7 +43,10 @@ public class AuthServiceImplement implements AuthService {
             .map(Permission::getPermission)
             .collect(Collectors.toSet());
 
-        String token = jwtService.generateToken(request.getUsername(), roles, permissions);
+        String token = jwtService.generateToken(
+            user.getId().toString(), 
+            roles, permissions
+        );
 
         return LoginResponse.builder()
             .accessToken(token)

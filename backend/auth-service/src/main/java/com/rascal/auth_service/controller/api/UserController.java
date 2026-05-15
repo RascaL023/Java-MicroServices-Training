@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rascal.auth_service.dto.mapper.UserMapper;
 import com.rascal.auth_service.dto.request.UserRequest;
 import com.rascal.auth_service.service.UserService;
-import com.rascal.auth_service.util.MessageResponse;
+import com.rascal.my_lib.util.ApiResponse;
 
 import jakarta.validation.Valid;
 
@@ -30,7 +30,7 @@ public class UserController {
     public ResponseEntity<?> insertUser(
         @Valid @RequestBody UserRequest request
     ) {
-        return MessageResponse.success2xx(
+        return ApiResponse.success(
             HttpStatus.CREATED, 
             UserMapper.toResponse(
                 userService.insertUser(request)
@@ -41,7 +41,8 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAuthority('user.readAll')")
     public ResponseEntity<?> getAllPaged(Pageable pageable) {
-        return MessageResponse.pagedResponse(
+        return ApiResponse.paged(
+            HttpStatus.OK,
             userService.getAll(pageable)
                 .map(UserMapper::toResponse)
         );
@@ -50,7 +51,7 @@ public class UserController {
     @PreAuthorize("#id == authentication.principal.claims['sub'] or hasAuthority('user.readAll')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable String id) {
-        return MessageResponse.success2xx(
+        return ApiResponse.success(
             HttpStatus.OK, 
             UserMapper.toResponse(userService.getUserById(Long.parseLong(id)))
         );

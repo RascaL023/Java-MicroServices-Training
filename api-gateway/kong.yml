@@ -1,12 +1,118 @@
 _format_version: "3.0"
+_transform: true
 
+##########################################
+# 1. CONSUMER
+##########################################
+consumers:
+  - username: backend-client
+    jwt_secrets:
+      - key: atlanta
+        algorithm: HS256
+        secret: w9hf20HADJIOasd9283hads9g2yeh29d82uasdh9asdh9
+
+##########################################
+# 2. SERVICES
+##########################################
 services: 
   - name: auth-service
     url: http://localhost:8082
-    # url: http://host.docker.internal:8082
 
     routes:
+      - name: auth-login-route
+        paths: 
+          - /api/auths/login
+        strip_path: false
+
       - name: auth-route
         paths: 
-          - /api/auths
+          - /api
         strip_path: false
+
+  - name: book-service
+    url: http://localhost:8081
+
+    routes:
+      - name: book-route
+        paths:
+          - /api/books
+        strip_path: false
+
+##########################################
+# 3. PLUGINS
+##########################################
+plugins:
+  # -------------------------------------------------------
+  # JWT VERIFIER — verifikasi signature + exp
+  # -------------------------------------------------------
+  - name: jwt
+    route: auth-route
+    config:
+      header_names:
+        - authorization
+        - Authorization
+      key_claim_name: kid
+      claims_to_verify:
+        - exp
+      run_on_preflight: false
+
+  # -------------------------------------------------------
+  # POST-FUNCTION — decode JWT payload, inject ke header
+  # Jalan SETELAH jwt plugin verified token
+  # -------------------------------------------------------
+  - name: post-function
+    service: auth-service
+    config:
+      access:
+        - |
+          local tok = (kong.request.get_header("authorization") or ""):match("^[Bb]earer%s+(.+)$")
+          if not tok then return end
+
+          local parts = {}
+          tok:gsub("[^.]+", function(c) parts[#parts+1] = c end)
+          if #parts ~= 3 then return end
+
+          -- base64url decode
+          local p = parts[2]:gsub("-", "+"):gsub("_", "/")
+          local pad = (4 - #p % 4) % 4
+          p = p .. string.rep("=", pad)
+          
+          local json_str = ngx.decode_base64(p)
+          if not json_str then
+            kong.log.err("base64 decode failed")
+            return
+          end
+          kong.log.err("payload: " .. json_str)
+
+          -- Parse manual tanpa library
+          -- sub
+          local sub = json_str:match('"sub"%s*:%s*"([^"]+)"')
+
+          -- roles (ambil semua nilai dalam array)
+          local roles = {}
+          local roles_raw = json_str:match('"roles"%s*:%s*%[([^%]]+)%]')
+          if roles_raw then
+            roles_raw:gsub('"([^"]+)"', function(v) roles[#roles+1] = v end)
+          end
+
+          -- authorities
+          local auths = {}
+          local auths_raw = json_str:match('"authorities"%s*:%s*%[([^%]]+)%]')
+          if auths_raw then
+            auths_raw:gsub('"([^"]+)"', function(v) auths[#auths+1] = v end)
+          end
+
+          if sub then
+            kong.service.request.set_header("X-User-Id", sub)
+          end
+
+          if #roles > 0 then
+            kong.service.request.set_header("X-User-Roles", table.concat(roles, ","))
+          end
+
+          if #auths > 0 then
+            kong.service.request.set_header("X-User-Authorities", table.concat(auths, ","))
+          end
+
+          kong.service.request.clear_header("authorization")
+          kong.service.request.clear_header("Authorization")

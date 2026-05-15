@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rascal.auth_service.dto.mapper.RoleMapper;
 import com.rascal.auth_service.dto.request.RoleRequest;
 import com.rascal.auth_service.service.RoleService;
-import com.rascal.auth_service.util.MessageResponse;
+import com.rascal.my_lib.util.ApiResponse;
 
 @RestController
 @RequestMapping("/api/roles")
@@ -26,7 +26,8 @@ public class RoleController {
     @GetMapping
     // @PreAuthorize("hasAuthority('role.readAll')")
     public ResponseEntity<?> getAll(Pageable pageable) {
-        return MessageResponse.pagedResponse(
+        return ApiResponse.paged(
+            HttpStatus.OK,
             roleService.getAll(pageable)
                 .map(RoleMapper::toResponse)
         );
@@ -34,7 +35,7 @@ public class RoleController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getRoleById(@PathVariable Long id) {
-        return MessageResponse.success2xx(
+        return ApiResponse.success(
             HttpStatus.OK, 
             RoleMapper.toResponse(roleService.getById(id))
         );
@@ -44,7 +45,7 @@ public class RoleController {
     public ResponseEntity<?> createRole(
         @RequestBody RoleRequest request
     ) {
-        return MessageResponse.success2xx(
+        return ApiResponse.success(
             HttpStatus.CREATED, 
             RoleMapper.toResponse(roleService.insert(request))
         );
