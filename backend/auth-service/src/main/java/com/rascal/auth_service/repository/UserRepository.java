@@ -9,7 +9,8 @@ import com.rascal.auth_service.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Boolean existsByUsername(String username);
+    boolean existsByUsernameOrEmail(String username, String email);
+    boolean existsByUsername(String username);
     @Query("""
         SELECT u FROM User u
         JOIN FETCH u.roles r

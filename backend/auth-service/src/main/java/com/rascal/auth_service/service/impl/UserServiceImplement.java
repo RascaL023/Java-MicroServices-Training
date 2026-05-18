@@ -15,6 +15,7 @@ import com.rascal.auth_service.entity.User;
 import com.rascal.auth_service.repository.UserRepository;
 import com.rascal.auth_service.service.RoleService;
 import com.rascal.auth_service.service.UserService;
+import com.rascal.my_lib.exception.ConflictException;
 import com.rascal.my_lib.exception.NotFoundException;
 
 @Service
@@ -25,6 +26,10 @@ public class UserServiceImplement implements UserService {
     @Autowired private PasswordEncoder passwordEncoder;
 
     public User insertUser(UserRequest request) {
+        if (userRepository.existsByUsernameOrEmail(
+            request.username(), request.email()
+        )) throw new ConflictException("Username/email telah terdaftar");
+
         User user = UserMapper.toEntity(request);
         user.setIsActive(true);
         user.setCreatedAt(LocalDateTime.now());
