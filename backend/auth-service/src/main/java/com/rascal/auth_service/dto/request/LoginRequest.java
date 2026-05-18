@@ -1,16 +1,13 @@
 package com.rascal.auth_service.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Size;
 
-@Getter @Setter
-public class LoginRequest {
-
+public record LoginRequest(
     @NotBlank(message = "Username tidak boleh kosong")
-    private String username;
+    String username,
     
     @NotBlank(message = "Password tidak boleh kosong")
-    private String password;
-    
-}
+    @Size(min = 8, message = "Password tidak valid")
+    String password
+) { }

@@ -34,10 +34,10 @@ public class AuthServiceImplement implements AuthService {
     public LoginResponse login(LoginRequest request) {
         User user = userRepository
             .findByIdentifierWithRolesAndPermissions(
-                request.getUsername()
+                request.username()
         ).orElseThrow(() -> new NotFoundException("User tidak ditemukkan"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword()))
+        if (!passwordEncoder.matches(request.password(), user.getPassword()))
             throw new BadRequestException("Username atau password salah");
 
         Set<String> roles = user.getRoles().stream()
@@ -63,13 +63,11 @@ public class AuthServiceImplement implements AuthService {
         }
 
 
-        return LoginResponse.builder()
-            .accessToken(token)
-            .tokenType(tokenType)
-            .username(user.getUsername())
-            .roles(roles)
-            .permissions(permissions)
-            .build();
+        return new LoginResponse(
+            user.getUsername(), 
+            roles, permissions,
+            tokenType, token
+        );
     }
     
 }

@@ -1,11 +1,8 @@
 package com.rascal.auth_service.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
 
-@Getter @Setter
-public class RoleRequest {
-
-    private String role;
-    
-}
+public record RoleRequest(
+    @NotBlank(message = "Role tidak boleh kosong")
+    String role
+) { }

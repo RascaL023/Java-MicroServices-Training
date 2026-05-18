@@ -29,7 +29,7 @@ public class UserServiceImplement implements UserService {
         user.setIsActive(true);
         user.setCreatedAt(LocalDateTime.now());
         user.setRoles(
-            roleService.getRoleByIds(request.getRoleIds())
+            roleService.getRoleByIds(request.roleIds())
                 .stream().collect(Collectors.toSet())
         );
         user.setPassword(passwordEncoder.encode(

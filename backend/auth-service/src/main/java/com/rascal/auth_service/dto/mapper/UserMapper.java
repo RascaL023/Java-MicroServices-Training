@@ -8,12 +8,12 @@ import com.rascal.auth_service.entity.User;
 public class UserMapper {
 
     public static UserResponse toResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setUsername(user.getUsername());
-        response.setEmail(user.getEmail());
-        response.setIsActive(user.getIsActive());
-        response.setRoles(user.getRoles().stream()
-            .map(Role::getRole).toList()
+        UserResponse response = new UserResponse(
+            user.getUsername(), 
+            user.getEmail(), 
+            user.getIsActive(), 
+            user.getRoles().stream()
+                .map(Role::getRole).toList()
         );
 
         return response;
@@ -21,9 +21,9 @@ public class UserMapper {
 
     public static User toEntity(UserRequest request) {
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPassword(request.password());
 
         return user;
     }
