@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.rascal.auth_service.configuration.AuthModeConfig;
 import com.rascal.auth_service.dto.request.LoginRequest;
 import com.rascal.auth_service.dto.response.LoginResponse;
 import com.rascal.auth_service.entity.Permission;
@@ -14,6 +15,7 @@ import com.rascal.auth_service.entity.Role;
 import com.rascal.auth_service.entity.User;
 import com.rascal.auth_service.repository.UserRepository;
 import com.rascal.auth_service.service.AuthService;
+import com.rascal.auth_service.service.SessionService;
 import com.rascal.my_lib.exception.BadRequestException;
 import com.rascal.my_lib.exception.NotFoundException;
 
@@ -25,7 +27,10 @@ public class AuthServiceImplement implements AuthService {
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtService jwtService;
+    @Autowired private SessionService sessionService;
+    @Autowired private AuthModeConfig authModeConfig;
 
+    @Override
     public LoginResponse login(LoginRequest request) {
         User user = userRepository
             .findByIdentifierWithRolesAndPermissions(
@@ -43,14 +48,24 @@ public class AuthServiceImplement implements AuthService {
             .map(Permission::getPermission)
             .collect(Collectors.toSet());
 
-        String token = jwtService.generateToken(
-            user.getId().toString(), 
-            roles, permissions
-        );
+
+        String token, tokenType;
+        if (authModeConfig.isStateful()) {
+            token = sessionService.createSession(
+                user.getId().toString(), 
+                roles, permissions
+            ); tokenType = "Session";
+        } else {
+            token = jwtService.generateToken(
+                user.getId().toString(), 
+                roles, permissions
+            ); tokenType = "Bearer";
+        }
+
 
         return LoginResponse.builder()
             .accessToken(token)
-            .tokenType("Bearer")
+            .tokenType(tokenType)
             .username(user.getUsername())
             .roles(roles)
             .permissions(permissions)

@@ -89,6 +89,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Redis Session -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- My ApiResponse -->
         <dependency>
             <groupId>com.rascal</groupId>
