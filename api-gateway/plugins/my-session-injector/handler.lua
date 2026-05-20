@@ -7,7 +7,9 @@ local MySessionInjector = {
 }
 
 function MySessionInjector:access(conf)
-    local auth_header = kong.request.get_header("authorization")
+    -- local auth_header = kong.request.get_header("authorization")
+    local auth_header = kong.request.get_header("cookie")
+    kong.log.warn("[====> Cookie]", auth_header)
     if not auth_header then
         return kong.response.exit(401, {
                 status = 401,
@@ -17,7 +19,8 @@ function MySessionInjector:access(conf)
         )
     end
 
-    local token = auth_header:match("^[Bb]earer%s+(.+)$")
+    -- local token = auth_header:match("^[Bb]earer%s+(.+)$")
+    local token = auth_header:match("^.+=(.+)$")
     if not token then
         return kong.response.exit(401, {
             status = 401,

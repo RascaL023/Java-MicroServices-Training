@@ -48,7 +48,7 @@ public class UserController {
         );
     }
 
-    @PreAuthorize("#id == authentication.principal.claims['sub'] or hasAuthority('user.readAll')")
+    @PreAuthorize("#id == authentication.name or hasAuthority('user.readAll')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable String id) {
         return ApiResponse.success(
